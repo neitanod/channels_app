@@ -1,0 +1,62 @@
+<html>
+  <head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <script>
+    var server = "publish.ip1.cc:4000";
+    function create_ws(topic) {
+        var ws = new WebSocket("ws://"+server+"/channel/websocket");
+        ws.onopen = function() {
+            var joinPayload = {
+                topic: "room:"+topic,
+                event: "phx_join",
+                payload: {},
+                ref: 1
+            };
+            ws.send(JSON.stringify(joinPayload));
+        };
+        return ws;
+    }
+
+    function send(topic, message) {
+        var messagePayload = {
+            topic: "room:"+topic,
+            event: "shout",
+            payload: { message: message },
+            ref: 2
+        };
+        ws.send(JSON.stringify(messagePayload));
+    }
+
+    function connectById() {
+        if(!window.location.hash) {
+            window.location.hash = "demo";
+        }
+        if(window.location.hash) {
+            return create_ws(window.location.hash);
+        }
+    }
+
+    top.ws = connectById();
+
+    ws.onmessage = function(event) {
+        var response = JSON.parse(event.data);
+        var newelm= document.createElement("div");
+            console.log(response.payload.message);
+        newelm.textContent = response.payload.message;
+        document.getElementById("chat").appendChild(newelm);
+    };
+
+    function speak() {
+        send(window.location.hash, document.getElementById('message').value)
+        document.getElementById('message').value = "";
+    }
+
+  </script>
+  <body>
+    <div id="chat"></div>
+    <input type="text" id="message" onkeydown="if(event.which==13) speak()">
+    <input type="button" value="send" onclick="speak()">
+  </body>
+</html>
