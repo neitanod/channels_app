@@ -38,7 +38,7 @@
         }
     }
 
-    top.ws = connectById();
+    window.ws = connectById();
 
     ws.onmessage = function(event) {
         var response = JSON.parse(event.data);
